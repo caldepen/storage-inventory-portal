@@ -1,0 +1,23 @@
+{
+  "name": "storage-inventory-portal",
+  "version": "1.0.0",
+  "description": "Halifax Hold'em - Storage inventory portal with admin and client dashboards",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "initdb": "node init_db.js",
+    "seed": "node seed.js"
+  },
+  "keywords": [],
+  "author": "Halifax Hold'em",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^8.4.0",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.9",
+    "express": "^4.19.2",
+    "express-session": "^1.17.3",
+    "method-override": "^3.0.0"
+  }
+}
