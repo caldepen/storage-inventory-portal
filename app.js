@@ -1,63 +1,65 @@
-require('dotenv').config();
+// -------------------------------
+// 📦 Storage Inventory Portal
+// app.js - Main Express Server
+// -------------------------------
+
+require('dotenv').config(); // Load environment variables
+
 const express = require('express');
 const path = require('path');
-const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+const cors = require('cors');
 const session = require('express-session');
-const methodOverride = require('method-override');
 
+// ✅ Import routes
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const clientRoutes = require('./routes/client');
 
+// ✅ Initialize Express
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// --- Session setup ---
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'devsecret',
-  resave: false,
-  saveUninitialized: false
-}));
+// ✅ Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
-// --- Middleware ---
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(methodOverride('_method'));
+// ✅ Session (basic example - for production, use a store like MongoStore)
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'supersecretkey',
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+// ✅ Serve static frontend files (optional)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- View engine ---
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+// ✅ Connect to MongoDB
+mongoose
+  .connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/storage_inventory', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log('✅ Connected to MongoDB'))
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
 
-// --- Global middleware for views ---
-app.use((req, res, next) => {
-  res.locals.user = req.session.user || null;
-  next();
-});
+// ✅ Register routes
+app.use('/auth', authRoutes);    // login, signup, logout
+app.use('/admin', adminRoutes);  // inventory management
+app.use('/client', clientRoutes); // public client access
 
-// --- Routes ---
-app.use('/', authRoutes);
-app.use('/admin', adminRoutes);
-app.use('/client', clientRoutes);
-
-// --- Home redirect ---
+// ✅ Default route
 app.get('/', (req, res) => {
-  if (req.session.user) {
-    if (req.session.user.role === 'admin') {
-      return res.redirect('/admin/dashboard');
-    } else {
-      return res.redirect('/client/dashboard');
-    }
-  }
-  res.redirect('/login');
+  res.send('📦 Storage Inventory Portal API is running...');
 });
 
-// --- 404 handler ---
+// ✅ 404 handler
 app.use((req, res) => {
-  res.status(404).send('<h1>404 - Page Not Found</h1>');
+  res.status(404).json({ error: 'Route not found' });
 });
 
-// --- Start server ---
-app.listen(PORT, () => {
-  console.log(`✅ Halifax Hold'em server running on http://localhost:${PORT}`);
-});
+// ✅ Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
